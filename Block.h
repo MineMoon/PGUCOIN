@@ -1,42 +1,45 @@
-#include<string>
-#include<vector>
-#include<iostream>
-#include"sha256.h"
+#ifndef BLOCK_H
+#define BLOCK_H
+
+#include <string>
+#include"iostream"
+#include <vector>
+#include <ctime>
+#include "Transaction.h"
+
 class Block {
 private:
-	int Number;
-	std::string Hash;
-	std::string HashMerkle;
-	std::string Data;
-	Block* PrevBlock;
-	Block* NextBlock;
-	time_t Time;
-	std::vector<PTransaction> TransactionList;
+    int Number;
+    std::string Hash;
+    std::string HashMerkle;
+    Block* PrevBlock;
+    Block* NextBlock;
+    time_t Time;
+    std::vector<Transaction*> TransactionList;
 public:
-	
-	std::string GetHash() const { return Hash; }
+    std::string GetHash() const { return Hash; }
+    int GetNumber() const { return Number; }
 
-	int GetNumber() const { return Number; }
+    Block* GetPrevBlock() const {
+        if (!PrevBlock) {
+            std::cerr << "It's Genesis Block!\n";
+            return nullptr;
+        }
+        return PrevBlock;
+    }
 
-	PBloke GetPrevBlock() const {
-		if (!PrevBlock) {
-			std::cout << "It's Genesis Block!\n";
-			return nullptr;
-		}
-		return PrevBlock;
-	}
+    Block* GetNextBlock() const {
+        if (!NextBlock) {
+            std::cerr << "It's last Block!\n";
+            return nullptr;
+        }
+        return NextBlock;
+    }
 
-	PBloke GetNextBlock() const {
-		if (!NextBlock) {
-			std::cout << "It's last Block!\n";
-			return nullptr;
-		}
-		return NextBlock;
-	}
-
-	void AddTransaction(PTransaction Trans) {TransactionList.push_back(Trans);}
-
-	std::string Hash() { return sha256(std::to_string(Number) + Data + PrevBlock->GetHash() ); }
+    void AddTransaction(Transaction* Trans) {
+        TransactionList.push_back(Trans);
+    }
 
 };
-typedef Block* PBloke;
+
+#endif // BLOCK_H

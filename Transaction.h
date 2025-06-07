@@ -1,27 +1,26 @@
-#include<string>
+#ifndef TRANSACTION_H
+#define TRANSACTION_H
 
-class User {}; typedef User* PUser;
+#include <string>
+
+class User; // Предварительное объявление
 
 class Transaction {
-	PUser Sender;
-	PUser Receiver;
-	double Amount;
+private:
+    User* Sender;
+    User* Receiver;
+    double Amount;
 public:
-	
-	Transaction(PUser SetSender, PUser SetReceiver, double SetAmount):
-		Sender(SetSender), Receiver(SetReceiver), Amount(SetAmount) {}
+    Transaction(User* SetSender, User* SetReceiver, double SetAmount) :
+        Sender(SetSender), Receiver(SetReceiver), Amount(SetAmount) {}
 
-	PUser GetSender() const { return Sender; }
+    User* GetSender() const { return Sender; }
+    User* GetReceiver() const { return Receiver; }
+    double GetAmount() const { return Amount; }
 
-	PUser GetResiver() const { return Receiver; }
-
-	double GetAmount() const { return Amount; };
-
-	void SetSender(PUser SetSender) { Sender = SetSender; }
-
-	void SetResiver(PUser SetReceiver) { Receiver = SetReceiver; }
-
-	void SetAmount(double SetAmount) { Amount = SetAmount; }
-
+    void SetSender(User* SetSender) { Sender = SetSender; }
+    void SetReceiver(User* SetReceiver) { Receiver = SetReceiver; }
+    void SetAmount(double SetAmount) { Amount = SetAmount; }
 };
-typedef Transaction* PTransaction;
+
+#endif // TRANSACTION_H

@@ -1,39 +1,38 @@
-#include<string>
-#include<vector>
-#include"Transaction.h"
-#include"Pool.h"
+#ifndef USER_H
+#define USER_H
 
-class BlockChain{}; typedef BlockChain* PBlockChain;
+#include <string>
+#include <vector>
+#include "Transaction.h"
+
+class BlockChain;
+class Pool;
 
 class User {
 private:
-	int UserID;
-	std::string Name;
-	double Balance;
-	BlockChain CopyBlockChain;
-	PBlockChain HisBlockChain;
-	std::vector<PTransaction> TransHistory;
+    int UserID;
+    std::string Name;
+    double Balance;
+    BlockChain* HisBlockChain;
+    std::vector<Transaction*> TransHistory;
 public:
+    void Receiving(double Amount) { Balance += Amount; }
 
-	void Receiving(double Amount) { Balance += Amount; } // получение
+    void MakeTransaction(double Amount, User* Receiver) {
+        if (Amount <= 0 || Amount > Balance) return;
 
-	void MakeTransaction(double SendedAmount, User* Receiver, double Amount) { 
-		if (Amount > Balance || Amount<=0)
-			return;
+        Transaction* PTrans = new Transaction(this, Receiver, Amount);
+        HisBlockChain->GetPool()->AddTrans(PTrans);
+        TransHistory.push_back(PTrans);
+    }
 
-		PTransaction PTrans = new Transaction(this, Receiver, Amount); // Создаёт транзакию
-		HisBlockChain->GetPool()->AddTrans(PTrans);                    // Отправляет в открытый пул
-		TransHistory.push_back(PTrans);  // <- Сделать в другом месте! // Надо сделать после приянтия блока в блокчейн!
+    void AccountReplenishment(double Dodep) {
+        if (Dodep > 0) Balance += Dodep;
+    }
 
-	}
-
-	void AccountReplenishment(double Dodep) { // Пополнение счета
-		if (Dodep > 0) Balance += Dodep;
-	}
-
-	void WithdrawalFromAccount(double Amount) { // Снятие со счета
-		if (Amount <= Balance) Balance -= Amount;
-	}
-
+    void WithdrawalFromAccount(double Amount) {
+        if (Amount <= Balance) Balance -= Amount;
+    }
 };
-typedef User* PUser;
+
+#endif

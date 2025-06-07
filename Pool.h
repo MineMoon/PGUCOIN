@@ -1,14 +1,16 @@
-#include<vector>
-#include"queue"
-#include"Transaction.h"
+#ifndef POOL_H
+#define POOL_H
+
+#include <queue>
+#include "Transaction.h"
+
 class Pool {
 private:
-	std::queue<PTransaction> TransPool;
+    std::queue<Transaction*> TransPool;
 public:
-	void AddTrans(PTransaction AddedTrans) {TransPool.push(AddedTrans);}
-	void DeleteTrans(PTransaction AddedTrans) { TransPool.pop(); }
-	PTransaction TopTrans() {
-		return TransPool.front();
-	}
+    void AddTrans(Transaction* AddedTrans) { TransPool.push(AddedTrans); }
+    void DeleteTrans() { TransPool.pop(); }
+    Transaction* TopTrans() { return TransPool.front(); }
 };
-typedef Pool* PPool;
+
+#endif

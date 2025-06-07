@@ -1,26 +1,21 @@
+#ifndef BLOCKCHAIN_H
+#define BLOCKCHAIN_H
 
-#include<string>
-#include<vector>
-#include"Block.h"
-#include"Transaction.h"
-#include"User.h"
-#include"Pool.h"
+#include "Block.h"
+#include "Pool.h"
 
 class BlockChain {
 private:
-	PBloke GenesisBlock;
-	PBloke LastBlock;
-	PPool TransactionsPool;
-	int CountBlocks;
-	std::string Name;
-
+    Block* GenesisBlock;
+    Block* LastBlock;
+    Pool* TransactionsPool;
+    int CountBlocks;
+    std::string Name;
 public:
-
-	PPool GetPool() { return TransactionsPool; }
-
-	PBloke GetGenesisBlock() { return GenesisBlock; };
-
-	PBloke GetLastBlock() { return LastBlock; };
-
+    Pool* GetPool() { return TransactionsPool; }
+    void SetPool(Pool* NewPool) { TransactionsPool=NewPool; }
+    Block* GetGenesisBlock() { return GenesisBlock; }
+    Block* GetLastBlock() { return LastBlock; }
 };
-typedef BlockChain* PBlockChain;
+
+#endif 
