@@ -27,6 +27,22 @@ std::vector<std::string> ReadNames(const std::string& FileName) {
 }
 
 
-std::vector<User> CreateUsers(std::string& FileFirstName, std::string& FileSecondName, int Count, PBlockChain BC) {
+std::string GenerationName(std::vector<std::string> FirstNames, std::vector<std::string> SecondNames) {
+    
+    int Start = 0;
+    int FistEnd = FirstNames.size()-1;
+    int SecondEnd = SecondNames.size()-1;
 
+    int FisrtNameInd = rand() % (FistEnd - Start + 1) + Start;
+    int SecondNameInd = rand() % (SecondEnd - Start + 1) + Start;
+
+    return FirstNames[FisrtNameInd] + " " + SecondNames[SecondNameInd];
+}
+
+bool CheckUserName(std::vector<User*> Users, std::string Name) {
+    for (int i = 0; i < Users.size(); i++){
+        if (Users[i]->GetName() == Name)
+            return false;
+    }
+    return true;
 }

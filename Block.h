@@ -17,6 +17,8 @@ private:
     time_t Time;
     std::vector<Transaction*> TransactionList;
 public:
+
+    
     std::string GetHash() const { return Hash; }
     int GetNumber() const { return Number; }
 
@@ -39,6 +41,14 @@ public:
     void AddTransaction(Transaction* Trans) {
         TransactionList.push_back(Trans);
     }
+
+    ~Block() {
+        for (Transaction* trans : TransactionList) {
+            delete trans;
+        }
+        TransactionList.clear();
+    }
+
 
 };
 
