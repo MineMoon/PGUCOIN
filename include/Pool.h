@@ -11,17 +11,13 @@ public:
     void AddTrans(Transaction* AddedTrans) { TransPool.push(AddedTrans); }
     void DeleteTrans() { TransPool.pop(); }
     Transaction* TopTrans() { return TransPool.front(); }
+    bool IsEmpty() const { return TransPool.empty(); }
 
+    // Геттер
+    size_t GetSize() const { return TransPool.size(); }
 
-    /*void Print() {
-        while (!TransPool.empty()) {
-            Transaction* Trans = TransPool.front();
-            std::cout << "    Sender: " << Trans->GetSender()->GetName() << std::endl;
-            std::cout << "    Receiver: " << Trans->GetReceiver()->GetName() << std::endl;
-            std::cout << "    Amount: " << Trans->GetAmount() << std::endl;
-
-        }
-    }*/
+    std::vector<Transaction*> GetTransactions(size_t count);
+    void RemoveTransactions(size_t count);
 
     ~Pool() {
         while (!TransPool.empty()) {
