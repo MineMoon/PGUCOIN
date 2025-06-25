@@ -12,6 +12,7 @@
 *.exe
 *.out
 PGUCOIN
+pgucoin.dat
 
 # Библиотеки и объектные файлы
 *.a
@@ -20,3 +21,4 @@ PGUCOIN
 *.dll
 *.o
 *.obj
+*.dat
