@@ -9,8 +9,7 @@
 #include "../include/User.h"
 #include "../include/Transaction.h"
 
-std::vector<std::string> FirstNames;
-std::vector<std::string> SecondNames;
+
 
 void displayMenu() {
     std::cout << "\n--- PGUCOIN Menu ---\n";
@@ -62,12 +61,13 @@ User* selectUser(const std::vector<User*>& users, const std::string& prompt) {
     }
 }
 
+std::vector<std::string> FirstNames = ReadNames("data/FirstNames.txt");
+std::vector<std::string> SecondNames = ReadNames("data/SecondNames.txt");
+
 int main() {
     srand(static_cast<unsigned int>(time(nullptr)));
     const std::string SAVE_FILE = "pgucoin.dat";
 
-    FirstNames = ReadNames("../data/FirstNames.txt");
-    SecondNames = ReadNames("../data/SecondNames.txt");
     if (FirstNames.empty() || SecondNames.empty()) {
         std::cerr << "Error: Could not load names...\n";
         return 1;
@@ -79,6 +79,7 @@ int main() {
 
     User* Burse = new User(0, "Burse", PGUCOIN);
     PGUCOIN->SetBurse(Burse);
+    PGUCOIN->SetHardMining(4);
 
     if (!PGUCOIN->loadFromFile()) {
         std::cout << "No saved blockchain found. Creating a new one.\n";
@@ -104,6 +105,7 @@ int main() {
     do {
         displayMenu();
         choice = getValidatedInput<int>("");
+        std::cout << std::endl;
 
         User* senderUser = nullptr;
         User* receiverUser = nullptr;
@@ -112,21 +114,24 @@ int main() {
 
         switch (choice) {
             case 0: { // Майнинг блока
+                system("cls");
                 PGUCOIN->MineBlock();
                 break;
             }
             case 1: { // Депозит
                 senderUser = selectUser(Users, "Select user for Deposit:");
+                std::cout << std::endl;
                 if (!senderUser) break;
                 amount = getValidatedInput<double>("Enter deposit amount: ");
                 transactionSuccess = senderUser->MakeTransaction(senderUser, amount, Action::DEPOSIT);
                 if (transactionSuccess) {
-                    std::cout << "Deposit transaction added to pool for " << senderUser->GetName() << ".\n";
+                    std::cout << "Deposit transaction added to pool for " << senderUser->GetName() << ".\n\n";
                 }
                 break;
             }
             case 2: { // Вывод
                 senderUser = selectUser(Users, "Select user for Withdrawal:");
+                std::cout << std::endl;
                 if (!senderUser) break;
                 amount = getValidatedInput<double>("Enter withdrawal amount: ");
                 transactionSuccess = senderUser->MakeTransaction(senderUser, amount, Action::WITHDRAW);
@@ -137,6 +142,7 @@ int main() {
             }
             case 3: { // Перевод
                 senderUser = selectUser(Users, "Select sender for Transfer:");
+                std::cout << std::endl;
                 if (!senderUser) break;
                 receiverUser = selectUser(Users, "Select receiver for Transfer:");
                 if (!receiverUser || senderUser == receiverUser) {
@@ -152,7 +158,8 @@ int main() {
                 break;
             }
             case 4: { // Баланс Пользователей
-                std::cout << "\n--- User Balances ---\n";
+                system("cls");
+                std::cout << "--- User Balances ---\n";
                 // Burse выводим для дебага
                 std::vector<User*> allParticipants = Users;
                 allParticipants.insert(allParticipants.begin(), Burse);
@@ -164,6 +171,7 @@ int main() {
                 break;
             }
             case 5: { // Весь блокчейн
+                system("cls");
                 PGUCOIN->PrintChain();
                 break;
             }

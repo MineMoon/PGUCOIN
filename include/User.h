@@ -27,6 +27,8 @@ public:
     void SetBlockChain(BlockChain* NewBlockChain) { HisBlockChain = NewBlockChain; }
     BlockChain* GetBlockChain() const { return HisBlockChain; }
 
+    void AddTransToHistory(Transaction* Trans) { TransHistory.push_back(Trans); }
+
     bool MakeTransaction(User* Person, double Amount, Action Oper);
 
     ~User();

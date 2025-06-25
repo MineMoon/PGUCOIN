@@ -17,6 +17,7 @@ private:
     Block* LastBlock;
     Pool* TransactionsPool;
     User* Burse;
+    int CurrentHardMining;
 
     std::string Name;
     std::string SaveFileName;
@@ -26,6 +27,13 @@ private:
     void clearChain();
     bool IsTransactionValid(Transaction* trans) const;
     bool saveToFile() const;
+
+    bool CheckSolution(std::string Solution) {
+        for (int i = 0; i < CurrentHardMining; i++) {
+            if (Solution[i] != '0') return false;
+        }
+        return true;
+    }
 
 public:
     // Конструктор принимает имя файла и указатель на вектор пользователей
@@ -41,6 +49,7 @@ public:
 
     // Сеттеры
     void SetBurse(User* setBurse) { Burse = setBurse; }
+    void SetHardMining(int NewHard) { CurrentHardMining = NewHard; }
 
     void CreateGenesisBlock(const std::vector<Transaction*>& initialTransactions = {});
     bool MineBlock(int maxTransactions = 10);

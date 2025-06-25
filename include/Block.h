@@ -16,13 +16,13 @@ private:
     Block* NextBlock;
     time_t TimeStamp;
     std::vector<Transaction*> TransactionList;
-    std::string Nonce;
+    int Nonce;
 
 public:
     // Конструктор для создания нового блока
     Block(int number, Block* prevBlock, const std::vector<Transaction*>& transactions);
     // Новый конструктор для загрузки блока из файла
-    Block(int number, time_t timestamp, std::string hash, std::string hashMerkle, std::string nonce, Block* prevBlock, const std::vector<Transaction*>& transactions);
+    Block(int number, time_t timestamp, std::string hash, std::string hashMerkle, Block* prevBlock, const std::vector<Transaction*>& transactions);
 
     // Геттеры
     std::string GetHash() const { return Hash; }
@@ -32,6 +32,7 @@ public:
     time_t GetTimeStamp() const { return TimeStamp; }
     const std::vector<Transaction*>& GetTransactionList() const { return TransactionList; }
     std::string GetHashMerkle() const { return HashMerkle; }
+    int GetNonce() const { return Nonce; }
 
     // Сеттер
     void SetNextBlock(Block* nextBlock) { NextBlock = nextBlock; }
@@ -40,6 +41,7 @@ public:
     std::string CalculateHash();
     static std::string CalculateMerkleRoot(const std::vector<Transaction*>& transactions);
     std::string ToString() const;
+    void RiseNonce() { Nonce++; }
 
     // Деструктор
     ~Block();

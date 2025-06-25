@@ -7,13 +7,13 @@ Block::Block(int number, Block* prevBlock, const std::vector<Transaction*>& tran
     : Number(number), PrevBlock(prevBlock), NextBlock(nullptr), TransactionList(transactions) {
     TimeStamp = time(nullptr);
     HashMerkle = CalculateMerkleRoot(TransactionList);
-    Nonce = "";
+    Nonce = 1;
     Hash = CalculateHash();
 }
 
 // Конструктор по умолчанию (для загрузки)
-Block::Block(int number, time_t timestamp, std::string hash, std::string hashMerkle, std::string nonce, Block* prevBlock, const std::vector<Transaction*>& transactions)
-    : Number(number), TimeStamp(timestamp), Hash(hash), HashMerkle(hashMerkle), Nonce(nonce), PrevBlock(prevBlock), NextBlock(nullptr), TransactionList(transactions) {
+Block::Block(int number, time_t timestamp, std::string hash, std::string hashMerkle,  Block* prevBlock, const std::vector<Transaction*>& transactions)
+    : Number(number), TimeStamp(timestamp), Hash(hash), HashMerkle(hashMerkle), Nonce(0), PrevBlock(prevBlock), NextBlock(nullptr), TransactionList(transactions) {
     // Здесь мы не вычисляем хеш, а присваиваем тот, что был сохранен
 }
 

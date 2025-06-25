@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS 
 #include "../include/BlockChain.h"
 #include <limits>
 #include <iomanip>
@@ -98,8 +99,31 @@ bool BlockChain::MineBlock(int maxTransactions) {
         std::cout << "No valid transactions found to mine a block.\n";
         return false;
     }
+    if (transactionsToMine.empty()) {
+        std::cout << "No valid transactions found to mine a block.\n";
+        return false;
+    }
+    else {
+        for (auto i = 0; i < transactionsToMine.size(); i++) { // Добавление транзакции в историю пользователей
+            if (transactionsToMine[i]->GetReceiver() != this->GetBurse()) {
+                transactionsToMine[i]->GetReceiver()->AddTransToHistory(transactionsToMine[i]);
+            }
+            if (transactionsToMine[i]->GetSender() != this->GetBurse()) {
+                transactionsToMine[i]->GetSender()->AddTransToHistory(transactionsToMine[i]);
+            }
+        }
+    }
+
+    
 
     Block* newBlock = new Block(CountBlocks, LastBlock, transactionsToMine);
+
+    //PoW
+    std::string Solution;
+    while (!CheckSolution(Solution)) {
+        newBlock->RiseNonce();
+        Solution = sha256(newBlock->ToString());
+    }
 
     if (LastBlock) {
         LastBlock->SetNextBlock(newBlock);
@@ -197,6 +221,8 @@ bool BlockChain::saveToFile() const {
         size_t hashLen = hash.length();
         std::string merkle = current->GetHashMerkle();
         size_t merkleLen = merkle.length();
+        //
+        int WriteNonce = current->GetNonce();
 
         outFile.write(reinterpret_cast<const char*>(&num), sizeof(num));
         outFile.write(reinterpret_cast<const char*>(&ts), sizeof(ts));
@@ -204,6 +230,8 @@ bool BlockChain::saveToFile() const {
         outFile.write(hash.c_str(), hashLen);
         outFile.write(reinterpret_cast<const char*>(&merkleLen), sizeof(merkleLen));
         outFile.write(merkle.c_str(), merkleLen);
+        //
+        outFile.write(reinterpret_cast<const char*>(&WriteNonce), sizeof(WriteNonce));
 
         const auto& transactions = current->GetTransactionList();
         size_t transCount = transactions.size();
@@ -263,6 +291,7 @@ bool BlockChain::loadFromFile() {
         int num;
         time_t ts;
         size_t hashLen, merkleLen;
+        int ReadHard;
 
         inFile.read(reinterpret_cast<char*>(&num), sizeof(num));
         inFile.read(reinterpret_cast<char*>(&ts), sizeof(ts));
@@ -277,6 +306,9 @@ bool BlockChain::loadFromFile() {
         std::string merkle(merkleLen, '\0');
         inFile.read(&merkle[0], merkleLen);
         if (inFile.fail()) return false;
+        
+        //
+        inFile.read(reinterpret_cast<char*>(&ReadHard), sizeof(ReadHard));
 
         std::vector<Transaction*> loadedTransactions;
         size_t transCount;
@@ -299,7 +331,7 @@ bool BlockChain::loadFromFile() {
             loadedTransactions.push_back(new Transaction(sender, receiver, amount, transTs));
         }
 
-        Block* newBlock = new Block(num, ts, hash, merkle, "", LastBlock, loadedTransactions);
+        Block* newBlock = new Block(num, ts, hash, merkle, LastBlock, loadedTransactions);
 
         if (!GenesisBlock) {
             GenesisBlock = newBlock;
