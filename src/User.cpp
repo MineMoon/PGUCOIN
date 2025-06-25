@@ -5,7 +5,7 @@
 
 User::User() : UserID(0), Name(""), HisBlockChain(nullptr) {} // Конструктор по умолчанию для обработки пустых пользователей
 
-User::User(int id, const std::string& name, BlockChain* bc) : UserID(id), Name(name), HisBlockChain(bc) {} // Основной конструктор
+User::User(int Id, const std::string& Name, BlockChain* Bc) : UserID(Id), Name(Name), HisBlockChain(Bc) {} // Основной конструктор
 
 bool User::MakeTransaction(User* Person, double Amount, Action Oper) {
     if (!HisBlockChain || !HisBlockChain->GetPool() || !HisBlockChain->GetBurse()) {
@@ -18,8 +18,8 @@ bool User::MakeTransaction(User* Person, double Amount, Action Oper) {
         return false;
     }
 
-    Transaction* pTrans = nullptr;
-    bool success = true;
+    Transaction* PTrans = nullptr;
+    bool Success = true;
 
     switch (Oper) {
 
@@ -28,20 +28,20 @@ bool User::MakeTransaction(User* Person, double Amount, Action Oper) {
         case Action::DEPOSIT:
             if (Person != this) {
                 std::cerr << "Error: Deposit must be to self.\n";
-                success = false;
+                Success = false;
             } else {
-                pTrans = new Transaction(HisBlockChain->GetBurse(), this, Amount);
-                HisBlockChain->GetPool()->AddTrans(pTrans);
+                PTrans = new Transaction(HisBlockChain->GetBurse(), this, Amount);
+                HisBlockChain->GetPool()->AddTrans(PTrans);
             }
             break;
         case Action::WITHDRAW:
             if (Person != this) {
                 std::cerr << "Error: Withdrawal must be from self.\n";
-                success = false;
+                Success = false;
             } else {
                 // Смотрим по последнему блоку, для улучшения безопасности можем допилить локальную проверку в будущем
-                pTrans = new Transaction(this, HisBlockChain->GetBurse(), Amount);
-                HisBlockChain->GetPool()->AddTrans(pTrans);
+                PTrans = new Transaction(this, HisBlockChain->GetBurse(), Amount);
+                HisBlockChain->GetPool()->AddTrans(PTrans);
             }
             break;
 
@@ -50,30 +50,30 @@ bool User::MakeTransaction(User* Person, double Amount, Action Oper) {
         case Action::TRANSFER:
             if (this == Person) {
                 std::cerr << "Error: Cannot transfer to self.\n";
-                success = false;
+                Success = false;
             } else if (!Person) {
                  std::cerr << "Error: Receiver is null.\n";
-                success = false;
+                Success = false;
             }
             else {
-                pTrans = new Transaction(this, Person, Amount);
-                HisBlockChain->GetPool()->AddTrans(pTrans);
+                PTrans = new Transaction(this, Person, Amount);
+                HisBlockChain->GetPool()->AddTrans(PTrans);
             }
             break;
 
         default:
             std::cerr << "Error: Unknown action type.\n";
-            success = false;
+            Success = false;
             break;
     }
 
-    if (pTrans && success) {
-        TransHistory.push_back(pTrans);
+    if (PTrans && Success) {
+        TransHistory.push_back(PTrans);
 
     } else {
-        delete pTrans; // Удаляем невалидную транзакцию, чтобы избежать утечки
+        delete PTrans; // Удаляем невалидную транзакцию, чтобы избежать утечки
     }
-    return success;
+    return Success;
 }
 
 User::~User() {

@@ -11,7 +11,7 @@
 
 
 
-void displayMenu() {
+void DisplayMenu() {
     std::cout << "\n--- PGUCOIN Menu ---\n";
     std::cout << "0. | Mine a Block | (Auto-saves)\n";
     std::cout << "1. Make a Deposit\n";
@@ -21,40 +21,40 @@ void displayMenu() {
     std::cout << "5. View Blockchain\n";
     std::cout << "6. Exit\n";
     std::cout << "7. Clear Blockchain and Exit\n";
-    std::cout << "Enter your choice: ";
+    std::cout << "Enter your Choice: ";
 }
 
 template<typename T>
-T getValidatedInput(const std::string& prompt) {
-    T value;
+T GetValidatedInput(const std::string& Prompt) {
+    T Value;
     while (true) {
-        std::cout << prompt;
-        std::cin >> value;
+        std::cout << Prompt;
+        std::cin >> Value;
         if (std::cin.fail()) {
             std::cout << "Invalid input. Please enter a number.\n";
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         } else {
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            return value;
+            return Value;
         }
     }
 }
 
-User* selectUser(const std::vector<User*>& users, const std::string& prompt) {
-    if (users.empty()) {
+User* SelectUser(const std::vector<User*>& Users, const std::string& Prompt) {
+    if (Users.empty()) {
         std::cout << "No users available.\n";
         return nullptr;
     }
 
-    std::cout << prompt << "\n";
-    for (size_t i = 0; i < users.size(); ++i) {
-        std::cout << i + 1 << ". " << users[i]->GetName() << " (ID: " << users[i]->GetID() << ")\n";
+    std::cout << Prompt << "\n";
+    for (size_t i = 0; i < Users.size(); ++i) {
+        std::cout << i + 1 << ". " << Users[i]->GetName() << " (ID: " << Users[i]->GetID() << ")\n";
     }
 
-    int choice = getValidatedInput<int>("Enter user number: ");
-    if (choice > 0 && choice <= users.size()) {
-        return users[choice - 1];
+    int Choice = GetValidatedInput<int>("Enter user number: ");
+    if (Choice > 0 && Choice <= Users.size()) {
+        return Users[Choice - 1];
     } else {
         std::cout << "Invalid user selection.\n";
         return nullptr;
@@ -81,10 +81,10 @@ int main() {
     PGUCOIN->SetBurse(Burse);
     PGUCOIN->SetHardMining(4);
 
-    if (!PGUCOIN->loadFromFile()) {
+    if (!PGUCOIN->LoadFromFile()) {
         std::cout << "No saved blockchain found. Creating a new one.\n";
 
-        int CountOfUsers = getValidatedInput<int>("Enter number of initial users (default = 3): ");
+        int CountOfUsers = GetValidatedInput<int>("Enter number of initial users (default = 3): ");
         if (CountOfUsers <= 0) CountOfUsers = 3;
 
         for (int i = 0; i < CountOfUsers; i++){
@@ -101,59 +101,59 @@ int main() {
         PGUCOIN->CreateGenesisBlock({});
     }
 
-    int choice;
+    int Choice;
     do {
-        displayMenu();
-        choice = getValidatedInput<int>("");
+        DisplayMenu();
+        Choice = GetValidatedInput<int>("");
         std::cout << std::endl;
 
-        User* senderUser = nullptr;
-        User* receiverUser = nullptr;
-        double amount;
-        bool transactionSuccess = false;
+        User* SenderUser = nullptr;
+        User* ReceiverUser = nullptr;
+        double Amount;
+        bool TransactionSuccess = false;
 
-        switch (choice) {
+        switch (Choice) {
             case 0: { // Майнинг блока
                 system("cls");
                 PGUCOIN->MineBlock();
                 break;
             }
             case 1: { // Депозит
-                senderUser = selectUser(Users, "Select user for Deposit:");
+                SenderUser = SelectUser(Users, "Select user for Deposit:");
                 std::cout << std::endl;
-                if (!senderUser) break;
-                amount = getValidatedInput<double>("Enter deposit amount: ");
-                transactionSuccess = senderUser->MakeTransaction(senderUser, amount, Action::DEPOSIT);
-                if (transactionSuccess) {
-                    std::cout << "Deposit transaction added to pool for " << senderUser->GetName() << ".\n\n";
+                if (!SenderUser) break;
+                Amount = GetValidatedInput<double>("Enter deposit Amount: ");
+                TransactionSuccess = SenderUser->MakeTransaction(SenderUser, Amount, Action::DEPOSIT);
+                if (TransactionSuccess) {
+                    std::cout << "Deposit transaction added to pool for " << SenderUser->GetName() << ".\n\n";
                 }
                 break;
             }
             case 2: { // Вывод
-                senderUser = selectUser(Users, "Select user for Withdrawal:");
+                SenderUser = SelectUser(Users, "Select user for Withdrawal:");
                 std::cout << std::endl;
-                if (!senderUser) break;
-                amount = getValidatedInput<double>("Enter withdrawal amount: ");
-                transactionSuccess = senderUser->MakeTransaction(senderUser, amount, Action::WITHDRAW);
-                if (transactionSuccess) {
-                    std::cout << "Withdrawal transaction added to pool for " << senderUser->GetName() << ".\n";
+                if (!SenderUser) break;
+                Amount = GetValidatedInput<double>("Enter withdrawal Amount: ");
+                TransactionSuccess = SenderUser->MakeTransaction(SenderUser, Amount, Action::WITHDRAW);
+                if (TransactionSuccess) {
+                    std::cout << "Withdrawal transaction added to pool for " << SenderUser->GetName() << ".\n";
                 }
                 break;
             }
             case 3: { // Перевод
-                senderUser = selectUser(Users, "Select sender for Transfer:");
+                SenderUser = SelectUser(Users, "Select sender for Transfer:");
                 std::cout << std::endl;
-                if (!senderUser) break;
-                receiverUser = selectUser(Users, "Select receiver for Transfer:");
-                if (!receiverUser || senderUser == receiverUser) {
+                if (!SenderUser) break;
+                ReceiverUser = SelectUser(Users, "Select receiver for Transfer:");
+                if (!ReceiverUser || SenderUser == ReceiverUser) {
                     std::cout << "Invalid receiver or cannot transfer to self.\n";
                     break;
                 }
-                amount = getValidatedInput<double>("Enter transfer amount: ");
-                transactionSuccess = senderUser->MakeTransaction(receiverUser, amount, Action::TRANSFER);
-                if (transactionSuccess) {
-                    std::cout << "Transfer transaction added to pool from " << senderUser->GetName()
-                              << " to " << receiverUser->GetName() << ".\n";
+                Amount = GetValidatedInput<double>("Enter transfer Amount: ");
+                TransactionSuccess = SenderUser->MakeTransaction(ReceiverUser, Amount, Action::TRANSFER);
+                if (TransactionSuccess) {
+                    std::cout << "Transfer transaction added to pool from " << SenderUser->GetName()
+                              << " to " << ReceiverUser->GetName() << ".\n";
                 }
                 break;
             }
@@ -161,12 +161,12 @@ int main() {
                 system("cls");
                 std::cout << "--- User Balances ---\n";
                 // Burse выводим для дебага
-                std::vector<User*> allParticipants = Users;
-                allParticipants.insert(allParticipants.begin(), Burse);
-                for (const auto& user : allParticipants) {
-                    double balance = PGUCOIN->GetUserBalance(user);
-                    std::cout << "User: " << user->GetName() << " (ID: " << user->GetID() << ") | Balance: "
-                              << std::fixed << std::setprecision(2) << balance << std::endl;
+                std::vector<User*> AllParticipants = Users;
+                AllParticipants.insert(AllParticipants.begin(), Burse);
+                for (const auto& CurUser : AllParticipants) {
+                    double CurBalance = PGUCOIN->GetUserBalance(CurUser);
+                    std::cout << "User: " << CurUser->GetName() << " (ID: " << CurUser->GetID() << ") | Balance: "
+                              << std::fixed << std::setprecision(2) << CurBalance << std::endl;
                 }
                 break;
             }
@@ -187,19 +187,19 @@ int main() {
                         std::cout << "Blockchain data file cleared.\n";
                     }
                     std::cout << "Exiting PGUCOIN. Goodbye!\n";
-                    choice = 6;
+                    Choice = 6;
                     break;
             }
             default: {
-                    std::cout << "Invalid choice. Please try again.\n";
+                    std::cout << "Invalid Choice. Please try again.\n";
                     break;
             }
         }
-    } while (choice != 6);
+    } while (Choice != 6);
 
     delete PGUCOIN;
-    for (User* user : Users) {
-        delete user;
+    for (User* CurUser : Users) {
+        delete CurUser;
     }
     delete Burse;
     Users.clear();

@@ -20,9 +20,9 @@ private:
 
 public:
     // Конструктор для создания нового блока
-    Block(int number, Block* prevBlock, const std::vector<Transaction*>& transactions);
+    Block(int Number, Block* PrevBlock, const std::vector<Transaction*>& Transactions);
     // Новый конструктор для загрузки блока из файла
-    Block(int number, time_t timestamp, std::string hash, std::string hashMerkle, Block* prevBlock, const std::vector<Transaction*>& transactions);
+    Block(int Number, time_t Timestamp, std::string Hash, std::string HashMerkle, Block* PrevBlock, const std::vector<Transaction*>& Transactions);
 
     // Геттеры
     std::string GetHash() const { return Hash; }
@@ -35,11 +35,11 @@ public:
     int GetNonce() const { return Nonce; }
 
     // Сеттер
-    void SetNextBlock(Block* nextBlock) { NextBlock = nextBlock; }
+    void SetNextBlock(Block* NewNextBlock) { NextBlock = NewNextBlock; }
 
     // Методы
     std::string CalculateHash();
-    static std::string CalculateMerkleRoot(const std::vector<Transaction*>& transactions);
+    static std::string CalculateMerkleRoot(const std::vector<Transaction*>& Transactions);
     std::string ToString() const;
     void RiseNonce() { Nonce++; }
 

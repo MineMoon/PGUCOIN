@@ -16,7 +16,7 @@ private:
 
 public:
     User();
-    User(int id, const std::string& name, BlockChain* bc);
+    User(int Id, const std::string& Name, BlockChain* Bc);
 
     std::string GetName() const { return Name; }
     void SetName(std::string NewName) { Name = NewName; }

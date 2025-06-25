@@ -16,13 +16,13 @@ public:
     // Геттер
     size_t GetSize() const { return TransPool.size(); }
 
-    std::vector<Transaction*> GetTransactions(size_t count);
-    void RemoveTransactions(size_t count);
+    std::vector<Transaction*> GetTransactions(size_t Count);
+    void RemoveTransactions(size_t Count);
 
     ~Pool() {
         while (!TransPool.empty()) {
-            Transaction* trans = TransPool.front();
-            delete trans;
+            Transaction* Trans = TransPool.front();
+            delete Trans;
             TransPool.pop();
         }
     }

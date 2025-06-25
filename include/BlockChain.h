@@ -24,9 +24,9 @@ private:
     int CountBlocks;
     std::vector<User*>* AllUsers;
 
-    void clearChain();
+    void ClearChain();
     bool IsTransactionValid(Transaction* trans) const;
-    bool saveToFile() const;
+    bool SaveToFile() const;
 
     bool CheckSolution(std::string Solution) {
         for (int i = 0; i < CurrentHardMining; i++) {
@@ -37,7 +37,7 @@ private:
 
 public:
     // Конструктор принимает имя файла и указатель на вектор пользователей
-    BlockChain(const std::string& name, const std::string& saveFileName, std::vector<User*>* users);
+    BlockChain(const std::string& Name, const std::string& SaveFileName, std::vector<User*>* Users);
     ~BlockChain();
 
     // Геттеры
@@ -48,16 +48,17 @@ public:
     int GetCountBlocks() const { return CountBlocks; }
 
     // Сеттеры
-    void SetBurse(User* setBurse) { Burse = setBurse; }
+    void SetBurse(User* SetBurse) { Burse = SetBurse; }
     void SetHardMining(int NewHard) { CurrentHardMining = NewHard; }
-
-    void CreateGenesisBlock(const std::vector<Transaction*>& initialTransactions = {});
-    bool MineBlock(int maxTransactions = 10);
-    double GetUserBalance(const User* user) const;
+    
+    //Методы
+    void CreateGenesisBlock(const std::vector<Transaction*>& InitialTransactions = {});
+    bool MineBlock(int MaxTransactions = 10);
+    double GetUserBalance(const User* CurUser) const;
     void PrintChain() const;
 
     // Метод загрузки
-    bool loadFromFile();
+    bool LoadFromFile();
 };
 
 #endif

@@ -6,66 +6,67 @@
 
 
 // Конструктор
-BlockChain::BlockChain(const std::string& name, const std::string& saveFileName, std::vector<User*>* users)
-    : Name(name), SaveFileName(saveFileName), GenesisBlock(nullptr), LastBlock(nullptr), Burse(nullptr), CountBlocks(0), AllUsers(users) {
+BlockChain::BlockChain(const std::string& Name, const std::string& SaveFileName, std::vector<User*>* Users)
+    : Name(Name), SaveFileName(SaveFileName), GenesisBlock(nullptr), LastBlock(nullptr), Burse(nullptr), CountBlocks(0), AllUsers(Users) {
     TransactionsPool = new Pool();
+    CurrentHardMining = 1;
     std::cout << "Blockchain '" << Name << "' system initiated.\n";
 }
 
 // Деструктор
 BlockChain::~BlockChain() {
     delete TransactionsPool;
-    clearChain();
+    ClearChain();
     std::cout << "Blockchain '" << Name << "' system shut down.\n";
 }
 
 
-void BlockChain::clearChain() {
-    Block* current = GenesisBlock;
-    while (current != nullptr) {
-        Block* next = current->GetNextBlock();
-        delete current;
-        current = next;
+void BlockChain::ClearChain() {
+    Block* Current = GenesisBlock;
+    while (Current != nullptr) {
+        Block* Next = Current->GetNextBlock();
+        delete Current;
+        Current = Next;
     }
     GenesisBlock = nullptr;
     LastBlock = nullptr;
     CountBlocks = 0;
 }
 
-void BlockChain::CreateGenesisBlock(const std::vector<Transaction*>& initialTransactions) {
+void BlockChain::CreateGenesisBlock(const std::vector<Transaction*>& InitialTransactions) {
     if (GenesisBlock) {
         std::cerr << "Genesis block already exists!\n";
         return;
     }
 
-    GenesisBlock = new Block(0, nullptr, initialTransactions);
+    GenesisBlock = new Block(0, nullptr, InitialTransactions);
     LastBlock = GenesisBlock;
     CountBlocks = 1;
     std::cout << "Genesis Block created with hash: " << GenesisBlock->GetHash() << std::endl;
 
     // Сохраняем сразу после создания генезис-блока
-    saveToFile();
+    SaveToFile();
 }
 
-bool BlockChain::IsTransactionValid(Transaction* trans) const {
-    if (!trans) return false;
+bool BlockChain::IsTransactionValid(Transaction* Trans) const {
+    if (!Trans) return false;
 
-    if (trans->GetSender() == Burse) {
+    if (Trans->GetSender() == Burse) {
         return true;
     }
 
-    double senderBalance = GetUserBalance(trans->GetSender());
-    if (senderBalance < trans->GetAmount()) {
-        std::cerr << "Validation Error: Sender " << trans->GetSender()->GetName()
-                  << " has insufficient funds (" << senderBalance << ") for transaction amount "
-                  << trans->GetAmount() << std::endl;
+    double SenderBalance = GetUserBalance(Trans->GetSender());
+    if (SenderBalance < Trans->GetAmount()) {
+        std::cerr << "Validation Error: Sender " << Trans->GetSender()->GetName()
+                  << " has insufficient funds (" << SenderBalance << ") for transaction Amount "
+                  << Trans->GetAmount() << std::endl;
         return false;
     }
 
     return true;
 }
 
-bool BlockChain::MineBlock(int maxTransactions) {
+bool BlockChain::MineBlock(int MaxTransactions) {
     if (TransactionsPool->IsEmpty() && CountBlocks > 0) {
         std::cout << "No transactions in the pool to mine.\n";
         return false;
@@ -78,66 +79,67 @@ bool BlockChain::MineBlock(int maxTransactions) {
     }
 
     std::cout << "\nAttempting to mine a new block...\n";
-    std::vector<Transaction*> transactionsToMine;
+    std::vector<Transaction*> TransactionsToMine;
 
-    int processedCount = 0;
-    while (!TransactionsPool->IsEmpty() && processedCount < maxTransactions) {
-        Transaction* trans = TransactionsPool->TopTrans();
+    int ProcessedCount = 0;
+    while (!TransactionsPool->IsEmpty() && ProcessedCount < MaxTransactions) {
+        Transaction* Trans = TransactionsPool->TopTrans();
         TransactionsPool->DeleteTrans();
 
-        if (IsTransactionValid(trans)) {
-            transactionsToMine.push_back(trans);
+        if (IsTransactionValid(Trans)) {
+            TransactionsToMine.push_back(Trans);
         } else {
-            std::cerr << "Validation Error: Transaction " << trans->ToString()
+            std::cerr << "Validation Error: Transaction " << Trans->ToString()
                       << " is invalid and will be discarded.\n";
-            delete trans;
+            delete Trans;
         }
-        processedCount++;
+        ProcessedCount++;
     }
 
-    if (transactionsToMine.empty() && CountBlocks > 0) {
+    if (TransactionsToMine.empty() && CountBlocks > 0) {
         std::cout << "No valid transactions found to mine a block.\n";
         return false;
     }
-    if (transactionsToMine.empty()) {
+    if (TransactionsToMine.empty()) {
         std::cout << "No valid transactions found to mine a block.\n";
         return false;
     }
     else {
-        for (auto i = 0; i < transactionsToMine.size(); i++) { // Добавление транзакции в историю пользователей
-            if (transactionsToMine[i]->GetReceiver() != this->GetBurse()) {
-                transactionsToMine[i]->GetReceiver()->AddTransToHistory(transactionsToMine[i]);
+        for (auto i = 0; i < TransactionsToMine.size(); i++) { // Добавление транзакции в историю пользователей
+            if (TransactionsToMine[i]->GetReceiver() != this->GetBurse()) {
+                TransactionsToMine[i]->GetReceiver()->AddTransToHistory(TransactionsToMine[i]);
             }
-            if (transactionsToMine[i]->GetSender() != this->GetBurse()) {
-                transactionsToMine[i]->GetSender()->AddTransToHistory(transactionsToMine[i]);
+            if (TransactionsToMine[i]->GetSender() != this->GetBurse()) {
+                TransactionsToMine[i]->GetSender()->AddTransToHistory(TransactionsToMine[i]);
             }
         }
     }
 
     
 
-    Block* newBlock = new Block(CountBlocks, LastBlock, transactionsToMine);
+    Block* NewBlock = new Block(CountBlocks, LastBlock, TransactionsToMine);
 
     //PoW
     std::string Solution;
     while (!CheckSolution(Solution)) {
-        newBlock->RiseNonce();
-        Solution = sha256(newBlock->ToString());
+        NewBlock->RiseNonce();
+        Solution = sha256(NewBlock->ToString());
     }
 
     if (LastBlock) {
-        LastBlock->SetNextBlock(newBlock);
+        LastBlock->SetNextBlock(NewBlock);
     }
-    LastBlock = newBlock;
+
+    LastBlock = NewBlock;
     CountBlocks++;
 
-    std::cout << "Block #" << newBlock->GetNumber() << " mined!" << std::endl;
-    std::cout << "  Hash: " << newBlock->GetHash() << std::endl;
-    std::cout << "  Merkle Root: " << newBlock->GetHashMerkle() << std::endl;
-    std::cout << "  Transactions: " << newBlock->GetTransactionList().size() << std::endl;
+    std::cout << "Block #" << NewBlock->GetNumber() << " mined!" << std::endl;
+    std::cout << "  Hash: " << NewBlock->GetHash() << std::endl;
+    std::cout << "  Merkle Root: " << NewBlock->GetHashMerkle() << std::endl;
+    std::cout << "  Transactions: " << NewBlock->GetTransactionList().size() << std::endl;
     std::cout << "  Pool size remaining: " << TransactionsPool->GetSize() << std::endl;
 
-    if (saveToFile()) {
+    if (SaveToFile()) {
         std::cout << "Blockchain state automatically saved.\n";
     } else {
         std::cerr << "Warning: Failed to automatically save blockchain state.\n";
@@ -146,23 +148,23 @@ bool BlockChain::MineBlock(int maxTransactions) {
     return true;
 }
 
-double BlockChain::GetUserBalance(const User* user) const {
-    if (!user) return 0.0;
-    double balance = 0.0;
+double BlockChain::GetUserBalance(const User* CurUser) const {
+    if (!CurUser) return 0.0;
+    double Balance = 0.0;
 
-    Block* current = GenesisBlock;
-    while (current != nullptr) {
-        for (const auto& trans : current->GetTransactionList()) {
-            if (trans->GetReceiver() == user) {
-                balance += trans->GetAmount();
+    Block* Current = GenesisBlock;
+    while (Current != nullptr) {
+        for (const auto& Trans : Current->GetTransactionList()) {
+            if (Trans->GetReceiver() == CurUser) {
+                Balance += Trans->GetAmount();
             }
-            if (trans->GetSender() == user) {
-                balance -= trans->GetAmount();
+            if (Trans->GetSender() == CurUser) {
+                Balance -= Trans->GetAmount();
             }
         }
-        current = current->GetNextBlock();
+        Current = Current->GetNextBlock();
     }
-    return balance;
+    return Balance;
 }
 
 void BlockChain::PrintChain() const {
@@ -172,177 +174,177 @@ void BlockChain::PrintChain() const {
         return;
     }
 
-    Block* current = GenesisBlock;
-    while (current != nullptr) {
-        std::cout << "Block #" << current->GetNumber() << "\n";
-        std::cout << "  Hash: " << current->GetHash() << "\n";
-        std::cout << "  Previous Hash: " << (current->GetPrevBlock() ? current->GetPrevBlock()->GetHash() : "N/A (Genesis)") << "\n";
-        std::cout << "  Merkle Root: " << current->GetHashMerkle() << "\n";
-        time_t timestamp_val = current->GetTimeStamp();
-        std::cout << "  Timestamp: " << ctime(&timestamp_val);
-        std::cout << "  Transactions (" << current->GetTransactionList().size() << "):" << "\n";
-        for (const auto& trans : current->GetTransactionList()) {
-            std::cout << "    - From: " << (trans->GetSender() ? trans->GetSender()->GetName() : "Burse")
-                      << " To: " << (trans->GetReceiver() ? trans->GetReceiver()->GetName() : "Burse")
-                      << " Amount: " << std::fixed << std::setprecision(2) << trans->GetAmount() << "\n";
+    Block* Current = GenesisBlock;
+    while (Current != nullptr) {
+        std::cout << "Block #" << Current->GetNumber() << "\n";
+        std::cout << "  Hash: " << Current->GetHash() << "\n";
+        std::cout << "  Previous Hash: " << (Current->GetPrevBlock() ? Current->GetPrevBlock()->GetHash() : "N/A (Genesis)") << "\n";
+        std::cout << "  Merkle Root: " << Current->GetHashMerkle() << "\n";
+        time_t TimestampVal = Current->GetTimeStamp();
+        std::cout << "  Timestamp: " << ctime(&TimestampVal);
+        std::cout << "  Transactions (" << Current->GetTransactionList().size() << "):" << "\n";
+        for (const auto& Trans : Current->GetTransactionList()) {
+            std::cout << "    - From: " << (Trans->GetSender() ? Trans->GetSender()->GetName() : "Burse")
+                      << " To: " << (Trans->GetReceiver() ? Trans->GetReceiver()->GetName() : "Burse")
+                      << " Amount: " << std::fixed << std::setprecision(2) << Trans->GetAmount() << "\n";
         }
         std::cout << "\n";
-        current = current->GetNextBlock();
+        Current = Current->GetNextBlock();
     }
     std::cout << "--- END OF CHAIN ---\n";
 }
 
 // Сохранение блокчейна в файл
-bool BlockChain::saveToFile() const {
-    std::ofstream outFile(SaveFileName, std::ios::binary);
-    if (!outFile) {
+bool BlockChain::SaveToFile() const {
+    std::ofstream OutFile(SaveFileName, std::ios::binary);
+    if (!OutFile) {
         std::cerr << "Error: Could not open file for writing: " << SaveFileName << std::endl;
         return false;
     }
 
-    const std::vector<User*>& users = *AllUsers;
-    size_t userCount = users.size();
-    outFile.write(reinterpret_cast<const char*>(&userCount), sizeof(userCount));
-    for (const auto& user : users) {
-        int id = user->GetID();
-        std::string name = user->GetName();
-        size_t nameLen = name.length();
-        outFile.write(reinterpret_cast<const char*>(&id), sizeof(id));
-        outFile.write(reinterpret_cast<const char*>(&nameLen), sizeof(nameLen));
-        outFile.write(name.c_str(), nameLen);
+    const std::vector<User*>& Users = *AllUsers;
+    size_t UserCount = Users.size();
+    OutFile.write(reinterpret_cast<const char*>(&UserCount), sizeof(UserCount));
+    for (const auto& CurUser : Users) {
+        int Id = CurUser->GetID();
+        std::string UsName = CurUser->GetName();
+        size_t NameLen = UsName.length();
+        OutFile.write(reinterpret_cast<const char*>(&Id), sizeof(Id));
+        OutFile.write(reinterpret_cast<const char*>(&NameLen), sizeof(NameLen));
+        OutFile.write(UsName.c_str(), NameLen);
     }
 
-    outFile.write(reinterpret_cast<const char*>(&CountBlocks), sizeof(CountBlocks));
-    Block* current = GenesisBlock;
-    while (current != nullptr) {
-        int num = current->GetNumber();
-        time_t ts = current->GetTimeStamp();
-        std::string hash = current->GetHash();
-        size_t hashLen = hash.length();
-        std::string merkle = current->GetHashMerkle();
-        size_t merkleLen = merkle.length();
+    OutFile.write(reinterpret_cast<const char*>(&CountBlocks), sizeof(CountBlocks));
+    Block* Current = GenesisBlock;
+    while (Current != nullptr) {
+        int Num = Current->GetNumber();
+        time_t Ts = Current->GetTimeStamp();
+        std::string CurHash = Current->GetHash();
+        size_t HashLen = CurHash.length();
+        std::string Merkle = Current->GetHashMerkle();
+        size_t MerkleLen = Merkle.length();
         //
-        int WriteNonce = current->GetNonce();
+        int WriteNonce = Current->GetNonce();
 
-        outFile.write(reinterpret_cast<const char*>(&num), sizeof(num));
-        outFile.write(reinterpret_cast<const char*>(&ts), sizeof(ts));
-        outFile.write(reinterpret_cast<const char*>(&hashLen), sizeof(hashLen));
-        outFile.write(hash.c_str(), hashLen);
-        outFile.write(reinterpret_cast<const char*>(&merkleLen), sizeof(merkleLen));
-        outFile.write(merkle.c_str(), merkleLen);
+        OutFile.write(reinterpret_cast<const char*>(&Num), sizeof(Num));
+        OutFile.write(reinterpret_cast<const char*>(&Ts), sizeof(Ts));
+        OutFile.write(reinterpret_cast<const char*>(&HashLen), sizeof(HashLen));
+        OutFile.write(CurHash.c_str(), HashLen);
+        OutFile.write(reinterpret_cast<const char*>(&MerkleLen), sizeof(MerkleLen));
+        OutFile.write(Merkle.c_str(), MerkleLen);
         //
-        outFile.write(reinterpret_cast<const char*>(&WriteNonce), sizeof(WriteNonce));
+        OutFile.write(reinterpret_cast<const char*>(&WriteNonce), sizeof(WriteNonce));
 
-        const auto& transactions = current->GetTransactionList();
-        size_t transCount = transactions.size();
-        outFile.write(reinterpret_cast<const char*>(&transCount), sizeof(transCount));
+        const auto& WriteTransactions = Current->GetTransactionList();
+        size_t TransCount = WriteTransactions.size();
+        OutFile.write(reinterpret_cast<const char*>(&TransCount), sizeof(TransCount));
 
-        for (const auto& trans : transactions) {
-            int senderId = trans->GetSender() ? trans->GetSender()->GetID() : 0; // 0 для фонда
-            int receiverId = trans->GetReceiver() ? trans->GetReceiver()->GetID() : 0;
-            double amount = trans->GetAmount();
-            time_t transTs = trans->GetTimeStamp();
+        for (const auto& Trans : WriteTransactions) {
+            int SenderId = Trans->GetSender() ? Trans->GetSender()->GetID() : 0; // 0 для фонда
+            int ReceiverId = Trans->GetReceiver() ? Trans->GetReceiver()->GetID() : 0;
+            double Amount = Trans->GetAmount();
+            time_t TransTs = Trans->GetTimeStamp();
 
-            outFile.write(reinterpret_cast<const char*>(&senderId), sizeof(senderId));
-            outFile.write(reinterpret_cast<const char*>(&receiverId), sizeof(receiverId));
-            outFile.write(reinterpret_cast<const char*>(&amount), sizeof(amount));
-            outFile.write(reinterpret_cast<const char*>(&transTs), sizeof(transTs));
+            OutFile.write(reinterpret_cast<const char*>(&SenderId), sizeof(SenderId));
+            OutFile.write(reinterpret_cast<const char*>(&ReceiverId), sizeof(ReceiverId));
+            OutFile.write(reinterpret_cast<const char*>(&Amount), sizeof(Amount));
+            OutFile.write(reinterpret_cast<const char*>(&TransTs), sizeof(TransTs));
         }
-        current = current->GetNextBlock();
+        Current = Current->GetNextBlock();
     }
 
-    outFile.close();
+    OutFile.close();
     return true;
 }
 
 // Загрузка блокчейна из файла
-bool BlockChain::loadFromFile() {
-    std::ifstream inFile(SaveFileName, std::ios::binary);
-    if (!inFile) {
+bool BlockChain::LoadFromFile() {
+    std::ifstream InFile(SaveFileName, std::ios::binary);
+    if (!InFile) {
         return false;
     }
 
-    clearChain();
+    ClearChain();
     AllUsers->clear();
-    std::map<int, User*> userMap;
-    userMap[Burse->GetID()] = Burse;
+    std::map<int, User*> UserMap;
+    UserMap[Burse->GetID()] = Burse;
 
-    size_t userCount;
-    inFile.read(reinterpret_cast<char*>(&userCount), sizeof(userCount));
-    if (inFile.fail()) return false;
-    for (size_t i = 0; i < userCount; ++i) {
-        int id;
-        size_t nameLen;
-        inFile.read(reinterpret_cast<char*>(&id), sizeof(id));
-        inFile.read(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
-        if (inFile.fail()) return false;
-        std::string name(nameLen, '\0');
-        inFile.read(&name[0], nameLen);
-        if (inFile.fail()) return false;
+    size_t UserCount;
+    InFile.read(reinterpret_cast<char*>(&UserCount), sizeof(UserCount));
+    if (InFile.fail()) return false;
+    for (size_t i = 0; i < UserCount; ++i) {
+        int CurId;
+        size_t NameLen;
+        InFile.read(reinterpret_cast<char*>(&CurId), sizeof(CurId));
+        InFile.read(reinterpret_cast<char*>(&NameLen), sizeof(NameLen));
+        if (InFile.fail()) return false;
+        std::string CurName(NameLen, '\0');
+        InFile.read(&CurName[0], NameLen);
+        if (InFile.fail()) return false;
 
-        User* newUser = new User(id, name, this);
-        AllUsers->push_back(newUser);
-        userMap[id] = newUser;
+        User* NewUser = new User(CurId, CurName, this);
+        AllUsers->push_back(NewUser);
+        UserMap[CurId] = NewUser;
     }
 
-    inFile.read(reinterpret_cast<char*>(&CountBlocks), sizeof(CountBlocks));
-    if (inFile.fail()) return false;
+    InFile.read(reinterpret_cast<char*>(&CountBlocks), sizeof(CountBlocks));
+    if (InFile.fail()) return false;
     for (int i = 0; i < CountBlocks; ++i) {
-        int num;
-        time_t ts;
-        size_t hashLen, merkleLen;
+        int Num;
+        time_t Ts;
+        size_t HashLen, MerkleLen;
         int ReadHard;
 
-        inFile.read(reinterpret_cast<char*>(&num), sizeof(num));
-        inFile.read(reinterpret_cast<char*>(&ts), sizeof(ts));
+        InFile.read(reinterpret_cast<char*>(&Num), sizeof(Num));
+        InFile.read(reinterpret_cast<char*>(&Ts), sizeof(Ts));
 
-        inFile.read(reinterpret_cast<char*>(&hashLen), sizeof(hashLen));
-        if (inFile.fail()) return false;
-        std::string hash(hashLen, '\0');
-        inFile.read(&hash[0], hashLen);
+        InFile.read(reinterpret_cast<char*>(&HashLen), sizeof(HashLen));
+        if (InFile.fail()) return false;
+        std::string CurHash(HashLen, '\0');
+        InFile.read(&CurHash[0], HashLen);
 
-        inFile.read(reinterpret_cast<char*>(&merkleLen), sizeof(merkleLen));
-        if (inFile.fail()) return false;
-        std::string merkle(merkleLen, '\0');
-        inFile.read(&merkle[0], merkleLen);
-        if (inFile.fail()) return false;
+        InFile.read(reinterpret_cast<char*>(&MerkleLen), sizeof(MerkleLen));
+        if (InFile.fail()) return false;
+        std::string Merkle(MerkleLen, '\0');
+        InFile.read(&Merkle[0], MerkleLen);
+        if (InFile.fail()) return false;
         
         //
-        inFile.read(reinterpret_cast<char*>(&ReadHard), sizeof(ReadHard));
+        InFile.read(reinterpret_cast<char*>(&ReadHard), sizeof(ReadHard));
 
-        std::vector<Transaction*> loadedTransactions;
-        size_t transCount;
-        inFile.read(reinterpret_cast<char*>(&transCount), sizeof(transCount));
-        if (inFile.fail()) return false;
-        for (size_t j = 0; j < transCount; ++j) {
-            int senderId, receiverId;
-            double amount;
-            time_t transTs;
+        std::vector<Transaction*> LoadedTransactions;
+        size_t TransCount;
+        InFile.read(reinterpret_cast<char*>(&TransCount), sizeof(TransCount));
+        if (InFile.fail()) return false;
+        for (size_t j = 0; j < TransCount; ++j) {
+            int SenderId, ReceiverId;
+            double Amount;
+            time_t TransTs;
 
-            inFile.read(reinterpret_cast<char*>(&senderId), sizeof(senderId));
-            inFile.read(reinterpret_cast<char*>(&receiverId), sizeof(receiverId));
-            inFile.read(reinterpret_cast<char*>(&amount), sizeof(amount));
-            inFile.read(reinterpret_cast<char*>(&transTs), sizeof(transTs));
-            if (inFile.fail()) return false;
+            InFile.read(reinterpret_cast<char*>(&SenderId), sizeof(SenderId));
+            InFile.read(reinterpret_cast<char*>(&ReceiverId), sizeof(ReceiverId));
+            InFile.read(reinterpret_cast<char*>(&Amount), sizeof(Amount));
+            InFile.read(reinterpret_cast<char*>(&TransTs), sizeof(TransTs));
+            if (InFile.fail()) return false;
 
-            User* sender = userMap[senderId];
-            User* receiver = userMap[receiverId];
+            User* CurSender = UserMap[SenderId];
+            User* CurReceiver = UserMap[ReceiverId];
 
-            loadedTransactions.push_back(new Transaction(sender, receiver, amount, transTs));
+            LoadedTransactions.push_back(new Transaction(CurSender, CurReceiver, Amount, TransTs));
         }
 
-        Block* newBlock = new Block(num, ts, hash, merkle, LastBlock, loadedTransactions);
+        Block* NewBlock = new Block(Num, Ts, CurHash, Merkle, LastBlock, LoadedTransactions);
 
         if (!GenesisBlock) {
-            GenesisBlock = newBlock;
+            GenesisBlock = NewBlock;
         }
         if (LastBlock) {
-            LastBlock->SetNextBlock(newBlock);
+            LastBlock->SetNextBlock(NewBlock);
         }
-        LastBlock = newBlock;
+        LastBlock = NewBlock;
     }
 
-    inFile.close();
+    InFile.close();
     std::cout << "Blockchain state loaded from " << SaveFileName << std::endl;
     return true;
 }
